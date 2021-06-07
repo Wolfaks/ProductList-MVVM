@@ -61,25 +61,10 @@ class DetailViewController: UIViewController {
                 self?.titleLabel.text = self?.viewModel.title
                 self?.producerLabel.text = self?.viewModel.producer
                 self?.priceLabel.text = self?.viewModel.price
+                self?.image.image = self?.viewModel.image
 
                 // Описание
                 self?.changeDescription(text: self?.viewModel.shortDescription ?? "")
-
-                // Загрузка изображения, если ссылка пуста, то выводится изображение по умолчанию
-                self?.image.image = UIImage(named: "nophoto")
-                if !(self?.viewModel.imageUrl.isEmpty ?? false) {
-
-                    // Загрузка изображения
-                    guard let imageURL = URL(string: (self?.viewModel.imageUrl)!) else {
-                        return
-                    }
-                    ImageNetworking.networking.getImage(link: imageURL) { (img) in
-                        DispatchQueue.main.async {
-                            self?.image.image = img
-                        }
-                    }
-
-                }
 
                 // Вывод корзины и кол-ва добавленых в корзину
                 self?.setCartButtons()
@@ -169,13 +154,10 @@ extension DetailViewController: CartCountDelegate {
         
         // Изменяем значение количества в структуре
         guard let productIndex = productIndex, viewModel != nil else { return }
-        
+
         // Обновляем кнопку в отображении
-        viewModel.selectedAmount = value
+        viewModel.changeCartCount(index: productIndex, count: value)
         setCartButtons()
-        
-        // Обновляем значение в корзине в списке через наблюдатель
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "notificationUpdateCartCount"), object: nil, userInfo: ["index": productIndex, "count": value])
         
     }
     
@@ -189,13 +171,10 @@ extension DetailViewController: CartBtnDetailDelegate {
         guard let productIndex = productIndex, viewModel != nil else { return }
 
         let addCartCount = 1
-        
-        // Обновляем кнопку в отображении
-        viewModel.selectedAmount = addCartCount
-        setCartButtons()
 
-        // Обновляем значение в корзине в списке через наблюдатель
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "notificationUpdateCartCount"), object: nil, userInfo: ["index": productIndex, "count": addCartCount])
+        // Обновляем кнопку в отображении
+        viewModel.changeCartCount(index: productIndex, count: addCartCount)
+        setCartButtons()
         
     }
     

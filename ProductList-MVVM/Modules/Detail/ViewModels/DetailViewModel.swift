@@ -9,6 +9,7 @@ class DetailViewModel: DetailViewModelProtocol {
     var producer: String = ""
     var shortDescription: String = ""
     var imageUrl: String = ""
+    var image: UIImage
     var price: String = ""
     var categoryList: [Category] = []
     var selectedAmount: Int = 0
@@ -18,6 +19,7 @@ class DetailViewModel: DetailViewModelProtocol {
     init(productID: Int, amount: Int) {
         id = productID
         selectedAmount = amount
+        image = UIImage(named: "nophoto")!
         loadProduct()
     }
 
@@ -40,6 +42,22 @@ class DetailViewModel: DetailViewModelProtocol {
                 // categories
                 self?.categoryList = product.categories
 
+                // Загрузка изображения, если ссылка пуста, то выводится изображение по умолчанию
+                if !(self?.imageUrl.isEmpty ?? false) {
+
+                    // Загрузка изображения
+                    if let imageURL = URL(string: (self?.imageUrl)!) {
+
+                        ImageNetworking.networking.getImage(link: imageURL) { (img) in
+                            DispatchQueue.global(qos: .userInitiated).sync {
+                                self?.image = img
+                            }
+                        }
+
+                    }
+
+                }
+
                 // Обновляем данные в контроллере
                 self?.bindToController()
 
@@ -56,6 +74,16 @@ class DetailViewModel: DetailViewModelProtocol {
     func cellViewModel(forIndexPath indexPath: IndexPath) -> DetailCellViewModalProtocol? {
         let category = categoryList[indexPath.row]
         return DetailCellViewModel(category: category)
+    }
+
+    func changeCartCount(index: Int, count: Int) {
+
+        // Обновляем значение
+        selectedAmount = count
+
+        // Обновляем значение в корзине в списке через наблюдатель
+        NotificationCenter.default.post(name: Notification.Name(rawValue: "notificationUpdateCartCount"), object: nil, userInfo: ["index": index, "count": count])
+
     }
 
 }
