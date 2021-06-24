@@ -12,7 +12,7 @@ class ListViewController: UIViewController {
 
     // Поиск
     var searchText = ""
-    var searchTimer = Timer()
+    private let searchOperationQueue = OperationQueue()
 
     // Страницы
     var page = 1
@@ -101,20 +101,6 @@ class ListViewController: UIViewController {
         view.endEditing(true);
     }
     
-    @objc func delayedSearch() {
-
-        guard viewModel != nil else { return }
-
-        // Выполняем поиск
-
-        // Задаем первую страницу
-        page = 1
-
-        // Запрос данных
-        viewModel.loadProducts(page: page, searchText: searchText)
-
-    }
-    
     @objc func changeSearchText(textField: UITextField) {
 
         // Проверяем измененный в форме текст
@@ -131,11 +117,27 @@ class ListViewController: UIViewController {
         // Очищаем старые данные и обновляем таблицу
         removeOldProducts()
 
-        // Отменяем предыдущий таймер поиска
-        searchTimer.invalidate()
+        // Поиск с задержкой (по ТЗ)
+        let operationSearch = BlockOperation()
+        operationSearch.addExecutionBlock { [weak operationSearch] in
 
-        // Таймер задержки поиска (по ТЗ)
-        searchTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(delayedSearch), userInfo: nil, repeats: false)
+            // Задержка (по ТЗ)
+            sleep(2)
+
+            if !(operationSearch?.isCancelled ?? false) {
+
+                // Выполняем поиск
+                // Задаем первую страницу
+                self.page = 1
+
+                // Запрос данных
+                self.viewModel.loadProducts(page: self.page, searchText: self.searchText)
+
+            }
+
+        }
+        searchOperationQueue.cancelAllOperations()
+        searchOperationQueue.addOperation(operationSearch)
         
     }
     
