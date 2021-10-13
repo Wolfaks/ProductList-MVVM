@@ -26,7 +26,7 @@ class ProductNetworking {
         }
         
         // Получаем список
-        Networking.network.getData(link: Networking.LinkList.list.rawValue, params: params) { (json) in
+        Networking.shared.getData(link: Networking.LinkList.list.rawValue, params: params) { (json) in
             
             do {
                 let response = try ProductResponse(products: json)
@@ -45,7 +45,7 @@ class ProductNetworking {
         let link = Networking.LinkList.product.rawValue + "\(id)"
         
         // Получаем список
-        Networking.network.getData(link: link, params: [:]) { (json) in
+        Networking.shared.getData(link: link, params: [:]) { (json) in
             
             do {
                 let response = try ProductResponse(product: json)
