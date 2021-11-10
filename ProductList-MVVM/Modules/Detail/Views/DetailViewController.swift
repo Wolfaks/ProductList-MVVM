@@ -1,6 +1,10 @@
 
 import UIKit
 
+protocol DetailViewtDelegate: class {
+    func changeCartCount(index: Int, value: Int)
+}
+
 class DetailViewController: UIViewController {
     
     var productIndex: Int?
@@ -22,6 +26,8 @@ class DetailViewController: UIViewController {
 
     // viewModel
     var viewModel: DetailViewModelProtocol!
+    
+    weak var delegate: DetailViewtDelegate?
 
     static func storyboardInstance() -> DetailViewController? {
         // Для перехода на эту страницу
@@ -49,6 +55,7 @@ class DetailViewController: UIViewController {
         // viewModel
         if let id = productID {
             viewModel = DetailViewModel(productID: id, amount: productSelectedAmount)
+            viewModel.delegate = self
             viewModel.bindToController = { [weak self] in
 
                 // Скрываем анимацию загрузки
@@ -80,7 +87,7 @@ class DetailViewController: UIViewController {
         
     }
     
-    func setCartButtons() {
+    private func setCartButtons() {
 
         guard let viewModel = viewModel else { return }
 
@@ -106,7 +113,7 @@ class DetailViewController: UIViewController {
         
     }
     
-    func changeDescription(text: String) {
+    private func changeDescription(text: String) {
         
         // Задаем описание
         if text.isEmpty {
@@ -121,10 +128,18 @@ class DetailViewController: UIViewController {
     
 }
 
-extension DetailViewController: UITableViewDataSource {
+extension DetailViewController: UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel?.numberOfRows() ?? 0
+    }
+    
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -137,13 +152,9 @@ extension DetailViewController: UITableViewDataSource {
         return cell
 
     }
-
-}
-
-extension DetailViewController: UITableViewDelegate {
-
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        32.0
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.layoutIfNeeded()
     }
 
 }
@@ -166,7 +177,7 @@ extension DetailViewController: CartCountDelegate {
 extension DetailViewController: CartBtnDetailDelegate {
     
     func addCart() {
-        
+
         // Добавляем товар в карзину
         guard let productIndex = productIndex, viewModel != nil else { return }
 
@@ -175,6 +186,17 @@ extension DetailViewController: CartBtnDetailDelegate {
         // Обновляем кнопку в отображении
         viewModel.changeCartCount(index: productIndex, count: addCartCount)
         setCartButtons()
+        
+    }
+    
+}
+
+extension DetailViewController: DetailViewModeltDelegate {
+    
+    func changeCartCount(index: Int, value: Int) {
+        
+        // Записываем новое значение
+        delegate?.changeCartCount(index: index, value: value)
         
     }
     

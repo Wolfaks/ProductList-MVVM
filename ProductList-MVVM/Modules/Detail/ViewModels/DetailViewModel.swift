@@ -1,6 +1,24 @@
 
 import UIKit
 
+protocol DetailViewModeltDelegate: class {
+    func changeCartCount(index: Int, value: Int)
+}
+
+protocol DetailViewModelProtocol {
+    var title: String { get }
+    var producer: String { get }
+    var shortDescription: String { get }
+    var image: UIImage { get }
+    var price: String { get }
+    var selectedAmount: Int { get set }
+    var bindToController: () -> () { get set }
+    var delegate: DetailViewModeltDelegate? { get set }
+    func numberOfRows() -> Int
+    func changeCartCount(index: Int, count: Int)
+    func cellViewModel(forIndexPath indexPath: IndexPath) -> DetailCellViewModalProtocol?
+}
+
 class DetailViewModel: DetailViewModelProtocol {
 
     let id: Int
@@ -15,6 +33,7 @@ class DetailViewModel: DetailViewModelProtocol {
     var selectedAmount: Int = 0
 
     var bindToController : () -> () = {}
+    weak var delegate: DetailViewModeltDelegate?
 
     init(productID: Int, amount: Int) {
         id = productID
@@ -23,10 +42,10 @@ class DetailViewModel: DetailViewModelProtocol {
         loadProduct()
     }
 
-    func loadProduct() {
+    private func loadProduct() {
 
         // Отправляем запрос загрузки товара
-        ProductNetworking.getOneProduct(id: id) { [weak self] (response) in
+        ProductDetailService.getOneProduct(id: id) { [weak self] (response) in
 
             // Проверяем что данные были успешно обработаны
             if let product = response.product {
@@ -40,7 +59,9 @@ class DetailViewModel: DetailViewModelProtocol {
                 self?.price = String(format: "%g", product.price) + " ₽"
 
                 // categories
-                self?.categoryList = product.categories
+                if let categories = product.categories {
+                    self?.categoryList = categories
+                }
 
                 // Загрузка изображения, если ссылка пуста, то выводится изображение по умолчанию
                 if !(self?.imageUrl.isEmpty ?? false) {
@@ -80,9 +101,8 @@ class DetailViewModel: DetailViewModelProtocol {
 
         // Обновляем значение
         selectedAmount = count
-
-        // Обновляем значение в корзине в списке через наблюдатель
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "notificationUpdateCartCount"), object: nil, userInfo: ["index": index, "count": count])
+        
+        delegate?.changeCartCount(index: index, value: count)
 
     }
 

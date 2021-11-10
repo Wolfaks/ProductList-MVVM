@@ -33,12 +33,6 @@ class ListViewController: UIViewController {
         tableView.dataSource = self
         tableView.rowHeight = 160.0
 
-        // Наблюдатель изменения товаров в корзине
-        NotificationCenter.default.addObserver(self, selector: #selector(updateCartCount), name: Notification.Name(rawValue: "notificationUpdateCartCount"), object: nil)
-
-        // Наблюдатель перехода в детальную информацию
-        NotificationCenter.default.addObserver(self, selector: #selector(showDetail), name: Notification.Name(rawValue: "notificationRedirectToDetail"), object: nil)
-
         // viewModel
         viewModel = ListViewModel(page: page, searchText: searchText)
         viewModel.bindToController = { [weak self] in
@@ -54,35 +48,6 @@ class ListViewController: UIViewController {
         }
         
     }
-
-    @objc func updateCartCount(notification: Notification) {
-
-        // Изменяем кол-во товара в корзине
-        guard let userInfo = notification.userInfo, let index = userInfo["index"] as? Int, let newCount = userInfo["count"] as? Int, let viewModel = viewModel, !viewModel.productList.isEmpty && viewModel.productList.indices.contains(index) else { return }
-
-        // Записываем новое значение
-        viewModel.updateCartCount(index: index, value: newCount)
-
-        // Обновляем tableView
-        tableView.reloadData()
-
-    }
-
-    @objc func showDetail(notification: Notification) {
-
-        // Переход в детальную информацию
-        guard let userInfo = notification.userInfo, let index = userInfo["index"] as? Int, let viewModel = viewModel, !viewModel.productList.isEmpty && viewModel.productList.indices.contains(index) else { return }
-
-        // Выполняем переход в детальную информацию
-        if let detailViewController = DetailViewController.storyboardInstance() {
-            detailViewController.productIndex = index
-            detailViewController.productID = viewModel.productList[index].id
-            detailViewController.productTitle = viewModel.productList[index].title
-            detailViewController.productSelectedAmount = viewModel.productList[index].selectedAmount
-            navigationController?.pushViewController(detailViewController, animated: true)
-        }
-
-    }
     
     @IBAction func removeSearch(_ sender: Any) {
         
@@ -97,7 +62,7 @@ class ListViewController: UIViewController {
         
     }
     
-    func hideKeyboard() {
+    private func hideKeyboard() {
         view.endEditing(true)
     }
     
@@ -141,7 +106,7 @@ class ListViewController: UIViewController {
         
     }
     
-    func removeOldProducts() {
+    private func removeOldProducts() {
 
         guard let viewModel = viewModel else { return }
         
@@ -156,12 +121,20 @@ class ListViewController: UIViewController {
     
 }
 
-extension ListViewController: UITableViewDataSource {
+extension ListViewController: UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         viewModel?.numberOfRows() ?? 0
     }
 
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "productCell", for: indexPath) as? ProductListTableCell, let viewModel = viewModel else { return UITableViewCell() }
@@ -169,16 +142,15 @@ extension ListViewController: UITableViewDataSource {
         let cellViewModel = viewModel.cellViewModel(forIndexPath: indexPath)
         cell.productIndex = indexPath.row
         cell.viewModel = cellViewModel
+        cell.delegate = self
 
         return cell
 
     }
-
-}
-
-extension ListViewController: UITableViewDelegate {
-
-    public func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.layoutIfNeeded()
+        
         // Проверяем что оторазили последний элемент и если есть, отображаем следующую страницу
         if viewModel != nil, !viewModel.productList.isEmpty && indexPath.row == (viewModel.productList.count - 1) && viewModel.haveNextPage {
 
@@ -204,6 +176,44 @@ extension ListViewController: UITextFieldDelegate {
         }
         
         return true
+        
+    }
+    
+}
+
+extension ListViewController: ProductListCellDelegate, DetailViewtDelegate {
+    
+    func changeCartCount(index: Int, value: Int) {
+        
+        // Изменяем кол-во товара в корзине
+        if !viewModel.productList.indices.contains(index) {
+            return
+        }
+        
+        // Записываем новое значение
+        viewModel.updateCartCount(index: index, value: value)
+
+        // Обновляем tableView
+        tableView.reloadData()
+        
+    }
+    
+    func redirectToDetail(index: Int) {
+        
+        // Выполняем переход в детальную информацию
+        if !viewModel.productList.indices.contains(index) {
+            return
+        }
+        
+        // Выполняем переход в детальную информацию
+        if let detailViewController = DetailViewController.storyboardInstance() {
+            detailViewController.productIndex = index
+            detailViewController.productID = viewModel.productList[index].id
+            detailViewController.productTitle = viewModel.productList[index].title
+            detailViewController.productSelectedAmount = viewModel.productList[index].selectedAmount
+            detailViewController.delegate = self
+            navigationController?.pushViewController(detailViewController, animated: true)
+        }
         
     }
     

@@ -1,6 +1,17 @@
 
 import UIKit
 
+protocol ListViewModelProtocol {
+    var productList: [Product] { get set }
+    var haveNextPage: Bool { get set }
+    var bindToController: () -> () { get set }
+    func loadProducts(page: Int, searchText: String)
+    func numberOfRows() -> Int
+    func removeAllProducts()
+    func updateCartCount(index: Int, value: Int)
+    func cellViewModel(forIndexPath indexPath: IndexPath) -> ListCellViewModalProtocol?
+}
+
 class ListViewModel: ListViewModelProtocol {
 
     var productList = [Product]()
@@ -14,13 +25,13 @@ class ListViewModel: ListViewModelProtocol {
     func loadProducts(page: Int, searchText: String) {
 
         // Отправляем запрос загрузки товаров
-        ProductNetworking.getProducts(page: page, searchText: searchText) { [weak self] (response) in
+        ProductListService.getProducts(page: page, searchText: searchText) { [weak self] (response) in
 
             // Обрабатываем полученные товары
             var products = response.products
 
             // Так как API не позвращает отдельный ключ, который говорит о том, что есть следующая страница, определяем это вручную
-            if !products.isEmpty && products.count == ProductNetworking.maxProductsOnPage {
+            if !products.isEmpty && products.count == Constants.Settings.maxProductsOnPage {
 
                 // Задаем наличие следующей страницы
                 self?.haveNextPage = true
@@ -49,7 +60,7 @@ class ListViewModel: ListViewModelProtocol {
         productList.removeAll()
     }
 
-    func appendProducts(products: [Product]) {
+    private func appendProducts(products: [Product]) {
         productList.append(contentsOf: products)
     }
 
@@ -61,5 +72,4 @@ class ListViewModel: ListViewModelProtocol {
         let product = productList[indexPath.row]
         return ListCellViewModel(product: product)
     }
-
 }

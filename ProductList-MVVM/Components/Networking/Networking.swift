@@ -3,17 +3,12 @@ import UIKit
 
 class Networking {
 
-    enum LinkList: String {
-        case list = "https://rstestapi.redsoftdigital.com/api/v1/products"
-        case product = "https://rstestapi.redsoftdigital.com/api/v1/products/"
-    }
-
     // Создаем синглтон для обращения к методам класса
-    private init() {
-    }
+    private init() {}
+    
     static let shared = Networking()
 
-    public func getData(link: String, params: [String: String], completion: @escaping (Any) -> ()) {
+    public func getData(link: String, params: [String: String], completion: @escaping (String) -> ()) {
 
         let session = URLSession.shared
 
@@ -43,17 +38,15 @@ class Networking {
         // Выполняем запрос по URL
         session.dataTask(with: urlRequest) { data, response, error in
 
-            guard let data = data else {
-                return
-            }
+            guard let data = data else { return }
 
             do {
 
-                let json = try JSONSerialization.jsonObject(with: data, options: [])
-
-                DispatchQueue.main.async(execute: {
-                    completion(json)
-                })
+                if let result = String(data: data, encoding: .utf8) {
+                    DispatchQueue.main.async(execute: {
+                        completion(result)
+                    })
+                }
 
             } catch {
                 print(error)

@@ -1,6 +1,11 @@
 
 import UIKit
 
+protocol ProductListCellDelegate: class {
+    func changeCartCount(index: Int, value: Int)
+    func redirectToDetail(index: Int)
+}
+
 class ProductListTableCell: UITableViewCell {
     
     @IBOutlet weak var borderView: UIView!
@@ -25,6 +30,7 @@ class ProductListTableCell: UITableViewCell {
     }()
     
     var productIndex: Int?
+    weak var delegate: ProductListCellDelegate?
 
     weak var viewModel: ListCellViewModalProtocol? {
         willSet(viewModel) {
@@ -67,7 +73,7 @@ class ProductListTableCell: UITableViewCell {
         super.awakeFromNib()
     }
     
-    func setBorder() {
+    private func setBorder() {
         
         // Устанавливаем обводку
         borderView.layer.cornerRadius = 10.0
@@ -76,8 +82,9 @@ class ProductListTableCell: UITableViewCell {
         
     }
     
-    func setCartButtons(viewModel: ListCellViewModalProtocol) {
+    private func setCartButtons(viewModel: ListCellViewModalProtocol?) {
 
+        guard let viewModel = viewModel else { return }
         // Вывод корзины и кол-ва добавленых в корзину
         if viewModel.selectedAmount > 0 {
 
@@ -119,16 +126,12 @@ class ProductListTableCell: UITableViewCell {
     }
     
     @objc func detailTapped() {
-        
         // Выполняем переход в детальную информацию
         guard let productIndex = productIndex else { return }
-
-        // Уведомляем наблюдатель о переходе в детальную информацию
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "notificationRedirectToDetail"), object: nil, userInfo: ["index": productIndex])
-        
+        delegate?.redirectToDetail(index: productIndex)
     }
     
-    func setClicable() {
+    private func setClicable() {
         
         // Клик на изображение для перехода в детальную информацию
         let tapImageGesture = UITapGestureRecognizer(target: self, action: #selector(detailTapped))
@@ -149,10 +152,7 @@ extension ProductListTableCell: CartCountDelegate {
     func changeCount(value: Int) {
         // Изменяем значение количества в структуре
         guard let productIndex = productIndex else { return }
-
-        // Обновляем значение в корзине в списке через наблюдатель
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "notificationUpdateCartCount"), object: nil, userInfo: ["index": productIndex, "count": value])
-
+        delegate?.changeCartCount(index: productIndex, value: value)
     }
     
 }
@@ -160,13 +160,9 @@ extension ProductListTableCell: CartCountDelegate {
 extension ProductListTableCell: CartBtnListDelegate {
     
     func addCart() {
-
         // Добавляем товар в карзину
         guard let productIndex = productIndex else { return }
-
-        // Обновляем значение в корзине в списке через наблюдатель
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "notificationUpdateCartCount"), object: nil, userInfo: ["index": productIndex, "count": 1])
-
+        delegate?.changeCartCount(index: productIndex, value: 1)
     }
     
 }
