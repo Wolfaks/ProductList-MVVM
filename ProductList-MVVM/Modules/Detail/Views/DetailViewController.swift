@@ -57,21 +57,25 @@ class DetailViewController: UIViewController {
             viewModel = DetailViewModel(productID: id, amount: productSelectedAmount)
             viewModel.delegate = self
             viewModel.bindToController = { [weak self] in
+                
+                guard let product = self?.viewModel.product else { return }
 
                 // Скрываем анимацию загрузки
                 self?.loadIndicator.stopAnimating()
 
                 // Задаем обновленный заголовок страницы
-                self?.title = self?.viewModel.title
+                self?.title = product.title
 
                 // Выводим информацию
-                self?.titleLabel.text = self?.viewModel.title
-                self?.producerLabel.text = self?.viewModel.producer
-                self?.priceLabel.text = self?.viewModel.price
+                self?.titleLabel.text = product.title
+                self?.producerLabel.text = product.producer
                 self?.image.image = self?.viewModel.image
+                
+                // Убираем лишние нули после запятой, если они есть и выводим цену
+                self?.priceLabel.text = String(format: "%g", product.price) + " ₽"
 
                 // Описание
-                self?.changeDescription(text: self?.viewModel.shortDescription ?? "")
+                self?.changeDescription(text: product.shortDescription)
 
                 // Вывод корзины и кол-ва добавленых в корзину
                 self?.setCartButtons()

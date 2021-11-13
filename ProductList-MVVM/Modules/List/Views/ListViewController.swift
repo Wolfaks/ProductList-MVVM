@@ -31,7 +31,6 @@ class ListViewController: UIViewController {
         // TableView
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.rowHeight = 160.0
 
         // viewModel
         viewModel = ListViewModel(page: page, searchText: searchText)

@@ -178,9 +178,18 @@
 			path = Detail;
 			sourceTree = "<group>";
 		};
+		AC3ECB8D273FCBF600BA9178 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				58C7A4BA0D3011C7F206E186 /* Xibs */,
+			);
+			path = Common;
+			sourceTree = "<group>";
+		};
 		AC5291E826696805008E18AB /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				AC3ECB8D273FCBF600BA9178 /* Common */,
 				AC3C8575266964C00037C5B8 /* List */,
 				AC3C8576266964C80037C5B8 /* Detail */,
 			);
@@ -225,6 +234,7 @@
 			isa = PBXGroup;
 			children = (
 				AC101F522652DB8C00229855 /* List.storyboard */,
+				ACFCF5512653A70700A46D40 /* ProductListTableCell.swift */,
 				AC101F542652DBA100229855 /* ListViewController.swift */,
 			);
 			path = Views;
@@ -244,6 +254,7 @@
 			children = (
 				ACC026FD2657A77C00021DAC /* DetailViewController.swift */,
 				58C7A9CB2DFA8E7DC1711493 /* Detail.storyboard */,
+				AC3F669E2657E3F2003658EC /* CategoryListTableCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -251,21 +262,10 @@
 		ACFCF5532653A70A00A46D40 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				ACFCF5542653A80A00A46D40 /* Cells */,
 				ACFCF55A2653CCD400A46D40 /* Networking */,
-				58C7A4BA0D3011C7F206E186 /* Xibs */,
 				ACA36CCE273C148000CDD5ED /* Constants.swift */,
 			);
 			path = Components;
-			sourceTree = "<group>";
-		};
-		ACFCF5542653A80A00A46D40 /* Cells */ = {
-			isa = PBXGroup;
-			children = (
-				ACFCF5512653A70700A46D40 /* ProductListTableCell.swift */,
-				AC3F669E2657E3F2003658EC /* CategoryListTableCell.swift */,
-			);
-			path = Cells;
 			sourceTree = "<group>";
 		};
 		ACFCF55A2653CCD400A46D40 /* Networking */ = {
